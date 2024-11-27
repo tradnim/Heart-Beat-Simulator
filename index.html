@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Tell-Tale Heart</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            overflow: hidden;
+            font-family: 'Oldstyle', serif;
+        }
+
+        .container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        #background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1; /* Background layer */
+        }
+
+        #heart {
+            position: absolute;
+            z-index: 2; /* Heart above background */
+            width: 30vmin; /* Default size for fallback (30% of viewport) */
+            height: auto; /* Maintains aspect ratio */
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        #vignette {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 3; /* Vignette layer */
+            pointer-events: none; /* Allows interaction through the vignette */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Background Image -->
+        <img id="background" src="1.png" alt="Background">
+
+        <!-- Heart Image -->
+        <img id="heart" src="2.png" alt="Heart">
+
+        <!-- Vignette Image -->
+        <img id="vignette" src="3.png" alt="Vignette">
+    </div>
+
+    <script>
+        const heartbeat = new Audio('audio-editor-output.mp3'); // Ensure the audio file is in the same directory
+        const heart = document.getElementById('heart');
+        let canClick = true; // Controls whether clicks are allowed
+        const cooldownTime = 2000; // Cooldown in milliseconds (2 seconds)
+
+        function resizeHeart() {
+            // Dynamically scale the heart relative to the window size
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+
+            // Make the heart size responsive: 30% of the smaller dimension
+            const size = Math.min(windowWidth, windowHeight) * 0.7; // 30% of the smaller side
+            heart.style.width = `${size}px`;
+        }
+
+        function generateHeartbeat() {
+            if (!canClick) return; // Ignore clicks during cooldown
+
+            canClick = false; // Prevent further clicks
+            const number = Math.floor(Math.random() * 6) + 1; // Random number of beats
+            let currentBeat = 0;
+
+            function pulse() {
+                if (currentBeat < number) {
+                    heart.style.transform = 'scale(1.5)'; // Increase size during pulse
+                    heart.style.opacity = '1';
+                    heartbeat.currentTime = 0; // Reset audio playback
+                    heartbeat.play();
+
+                    setTimeout(() => {
+                        heart.style.transform = 'scale(1)';
+                        heart.style.opacity = '0.8';
+
+                        currentBeat++;
+                        setTimeout(pulse, 1000); // Delay for the next beat
+                    }, 500);
+                } else {
+                    // Re-enable clicks after the animation ends
+                    setTimeout(() => {
+                        canClick = true;
+                    }, cooldownTime);
+                }
+            }
+
+            pulse();
+        }
+
+        // Resize the heart on window load and resize events
+        window.addEventListener('load', resizeHeart);
+        window.addEventListener('resize', resizeHeart);
+
+        // Event listener for touch/click (Mobile-friendly)
+        document.body.addEventListener('click', generateHeartbeat);
+        document.body.addEventListener('touchstart', generateHeartbeat);
+    </script>
+</body>
+</html>
